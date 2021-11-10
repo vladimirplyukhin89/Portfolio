@@ -377,7 +377,8 @@ legend {
 }
 
 .header__contacts-burger-svg {
-		fill: currentColor
+		fill: currentColor;
+		position: fixed;
 }
 
 .contacts__item {
