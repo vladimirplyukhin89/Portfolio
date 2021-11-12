@@ -7,6 +7,11 @@ const disabledScroll = () => {
     сохраним изначальную позицию в прототипе, чтобы при закрытие модального окна нас 
     не откатывало вверх из-за  position: fixed
     */
+    document.documentElement.style.cssText = `
+        position: relative;
+        height: 100vh;
+    `;
+
     document.body.scrollPosition = window.scrollY;
 
     document.body.style.cssText = `
@@ -18,10 +23,12 @@ const disabledScroll = () => {
     width: 100vw;
     padding-right: ${widthScroll}px;
     `;
-}
+};
 
 const enabledScroll = () => {
-    document.body.style.cssText = 'position: relative';
+    document.documentElement.style.cssText = '';
+
+    document.body.style.cssText = 'position: relative;';
     window.scroll({ top: document.body.scrollPosition }); // при закрытии откатываемся туда же, где были на странице по скроллу
 }
 
@@ -110,4 +117,48 @@ const enabledScroll = () => {
     }
 
     handlerBurger(headerContactsBurger, headerContacts, 'header__contacts_open')
+}
+
+{ // галерея
+    const portfolioList = document.querySelector('.portfolio__list');
+    const pageOverlay = document.createElement('div');
+    pageOverlay.classList.add('page__overlay');
+
+
+    portfolioList.addEventListener('click', (e) => {
+
+        const card = e.target.closest('.card');
+
+        if (card) {
+            disabledScroll();
+            document.body.append(pageOverlay);
+            const title = card.querySelector('.card__client')
+
+            const picture = document.createElement('picture');
+
+            picture.style.cssText = `
+                position: absolute;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 90%;
+                max-width: 1440px;
+            `;
+
+            picture.innerHTML = `
+                <source srcset="${card.dataset.fullImage}.avif" type="image/avif">
+                <source srcset="${card.dataset.fullImage}.webp" type="image/webp">
+                <img src="${card.dataset.fullImage}.jpg" alt="${title.textContent}">
+            `;
+
+            pageOverlay.append(picture);
+        }
+    });
+
+    pageOverlay.addEventListener('click', () => {
+        enabledScroll();
+        pageOverlay.remove();
+        pageOverlay.textContent = '';
+    })
+
 }
