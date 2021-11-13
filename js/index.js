@@ -3,6 +3,13 @@
 const disabledScroll = () => {
 
     const widthScroll = window.innerWidth - document.body.offsetWidth;
+
+    if (window.innerWidth >= 992) {
+        document.querySelector('.page__header').style.left = '';
+    }
+    if (window.innerWidth >= 1440) {
+        document.querySelector('.page__header').style.left = '';
+    }
     /*
     сохраним изначальную позицию в прототипе, чтобы при закрытие модального окна нас 
     не откатывало вверх из-за  position: fixed
@@ -29,7 +36,10 @@ const enabledScroll = () => {
     document.documentElement.style.cssText = '';
 
     document.body.style.cssText = 'position: relative;';
-    window.scroll({ top: document.body.scrollPosition }); // при закрытии откатываемся туда же, где были на странице по скроллу
+    document.querySelector('.page__header').style.left = '';
+    window.scroll({
+        top: document.body.scrollPosition
+    }); // при закрытии откатываемся туда же, где были на странице по скроллу
 }
 
 {   // Модальное окно
@@ -161,4 +171,81 @@ const enabledScroll = () => {
         pageOverlay.textContent = '';
     })
 
+}
+
+{ // создание карточек портфолио на основе данных из JSON
+    const COUNT_CARD = 2;
+    const portfolioList = document.querySelector('.portfolio__list');
+    const portfolioAdd = document.querySelector('.portfolio__add');
+
+    const getData = () => fetch('db.json')
+        .then((response) => {
+            if (response.ok) return response.json()
+            else throw `Что-то пошло не так: ошибка ${response.status}`;
+        })
+        .catch(error => console.log(error));
+
+    const createStore = async () => {
+        const data = await getData();
+        return {
+            data,
+            counter: 0,
+            count: COUNT_CARD,
+            get length() {
+                return this.data.length;
+            },
+            get cardData() {
+                const renderData = this.data.slice(this.counter, this.counter + this.count);
+                this.counter += renderData.length;
+                return renderData;
+            },
+        }
+    }
+
+    const renderCard = data => {
+
+        const cards = data.map((item) => {
+            // Деструктуризация
+            const { preview, year, type, client, image } = item;
+
+            const li = document.createElement('li');
+            li.classList.add('portfolio__item');
+
+            li.innerHTML = `
+            <article class="card" tabindex="0" role="button" aria-label="открыть макет" data-full-image="${image}">
+              <picture class="card__picture">
+                <source srcset="${preview}.avif" type="image/avif">
+                <source srcset="${preview}.webp" type="image/webp">
+                <img src="${preview}.jpg" alt="превью iphone" width="166" height="103">
+              </picture>
+
+              <p class="card__data">
+                <span class="card__client">Клиент: ${client}</span>
+                <time class="card__date" datetime="${year}">год: ${year}</time>
+              </p>
+
+              <h3 class="card__title">${type}</h3>
+            </article>
+            `;
+
+            return li;
+        });
+
+        portfolioList.append(...cards)
+    };
+
+    const initPortfolio = async () => {
+        const store = await createStore();
+
+        renderCard(store.cardData);
+
+        portfolioAdd.addEventListener('click', () => {
+            renderCard(store.cardData);
+
+            if (store.length === store.counter)
+                portfolioAdd.remove();
+        })
+    }
+
+    initPortfolio();
 }
