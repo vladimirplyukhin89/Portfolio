@@ -4,11 +4,12 @@ const disabledScroll = () => {
 
     const widthScroll = window.innerWidth - document.body.offsetWidth;
 
+    // отработка бага - скачка призакрывание модального окна 
     if (window.innerWidth >= 992) {
-        document.querySelector('.page__header').style.left = '';
+        document.querySelector('.page__header').style.left = `calc(50% - 50vw - ${widthScroll / 2}px)`;
     }
     if (window.innerWidth >= 1440) {
-        document.querySelector('.page__header').style.left = '';
+        document.querySelector('.page__header').style.left = `calc(50% - ${720 + widthScroll / 2}px)`;
     }
     /*
     сохраним изначальную позицию в прототипе, чтобы при закрытие модального окна нас 
@@ -22,7 +23,7 @@ const disabledScroll = () => {
     document.body.scrollPosition = window.scrollY;
 
     document.body.style.cssText = `
-    overflow: hidden;
+    overflow: hidden; 
     position: fixed;
     top: -${document.body.scrollPosition}px;
     left: 0;
@@ -63,7 +64,6 @@ const enabledScroll = () => {
         const openModal = () => {
             disabledScroll();
             modalAuth.style.opacity = opacity;
-
             modalAuth.classList.add(openSelector);
 
             // Функция для анимации модального окна
@@ -71,13 +71,17 @@ const enabledScroll = () => {
             const anim = () => {
                 opacity += speed[sm];
                 modalAuth.style.opacity = opacity;
-                if (opacity < 1) requestAnimationFrame(anim);
+                if (opacity < 1) {
+                    requestAnimationFrame(anim);
+                } else {
+                    opacity = 1;
+                    modalAuth.style.opacity = 1;
+                }
             }
             requestAnimationFrame(anim)
         }
 
         const closeModal = () => {
-            enabledScroll();
             const anim = () => {
                 opacity -= speed[sm];
                 modalAuth.style.opacity = opacity;
@@ -85,6 +89,9 @@ const enabledScroll = () => {
                     requestAnimationFrame(anim);
                 } else {
                     modalAuth.classList.remove(openSelector);
+                    opacity = 0;
+                    modalAuth.style.opacity = 0;
+                    enabledScroll();
                 }
             }
             requestAnimationFrame(anim);
